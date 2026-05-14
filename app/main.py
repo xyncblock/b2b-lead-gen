@@ -13,11 +13,10 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    Base.metadata.create_all(bind=engine)
     yield
     # Shutdown
-    await engine.dispose()
+    engine.dispose()
 
 
 app = FastAPI(

@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 from datetime import datetime
 import redis
 
-from app.database import get_async_session
+from app.database import get_db
 from app.config import get_settings
 from app.schemas import HealthStatus, HealthReady
 
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/health", tags=["health"])
 
 
 @router.get("/live")
-async def health_live():
+def health_live():
     return HealthStatus(
         status="alive",
         timestamp=datetime.utcnow()
@@ -21,13 +21,13 @@ async def health_live():
 
 
 @router.get("/ready")
-async def health_ready(session: AsyncSession = Depends(get_async_session)):
+def health_ready(db: Session = Depends(get_db)):
     db_ok = False
     redis_ok = False
     
     # Check database
     try:
-        await session.execute(text("SELECT 1"))
+        db.execute(text("SELECT 1"))
         db_ok = True
     except Exception:
         pass
