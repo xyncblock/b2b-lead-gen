@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}My Businesses - B2B Lead Generator{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold">My Businesses</h1>
+    <button onclick="showCreateModal()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+        + Add Business
+    </button>
+</div>
+
+<div id="businesses-list" hx-get="/api/businesses/" hx-trigger="load" hx-headers='js:{"Authorization": "Bearer " + localStorage.getItem("token")}'>
+    <p class="text-gray-600">Loading...</p>
+</div>
+
+<!-- Create Business Modal -->
+<div id="create-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+        <h2 class="text-2xl font-bold mb-4">Add Business</h2>
+        <form hx-post="/api/businesses/" hx-swap="none" @htmx:after-request="handleCreate(event)">
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Business Name</label>
+                <input type="text" name="name" class="w-full px-3 py-2 border rounded-lg" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Description</label>
+                <textarea name="description" class="w-full px-3 py-2 border rounded-lg" rows="3"></textarea>
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button type="button" onclick="hideCreateModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">Create</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function showCreateModal() {
+    document.getElementById('create-modal').classList.remove('hidden');
+}
+
+function hideCreateModal() {
+    document.getElementById('create-modal').classList.add('hidden');
+}
+
+function handleCreate(event) {
+    const response = event.detail.xhr;
+    if (response.status === 200) {
+        hideCreateModal();
+        htmx.trigger('#businesses-list', 'load');
+    } else {
+        alert('Failed to create business.');
+    }
+}
+
+// Check auth
+document.addEventListener('DOMContentLoaded', () => {
+    if (!localStorage.getItem('token')) {
+        window.location.href = '/login';
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Login - B2B Lead Generator{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+    <div class="bg-white p-8 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold text-center mb-6">Login</h2>
+        <form hx-post="/api/auth/login" hx-swap="none" @htmx:after-request="handleLogin(event)">
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="username">
+                    Email
+                </label>
+                <input class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500"
+                       type="email" id="username" name="username" required>
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
+                    Password
+                </label>
+                <input class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500"
+                       type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" class="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700">
+                Login
+            </button>
+        </form>
+        <p class="text-center mt-4 text-gray-600">
+            Don't have an account? <a href="/register" class="text-purple-600">Register</a>
+        </p>
+    </div>
+</div>
+
+<script>
+function handleLogin(event) {
+    const response = event.detail.xhr;
+    if (response.status === 200) {
+        const data = JSON.parse(response.responseText);
+        localStorage.setItem('token', data.access_token);
+        window.location.href = '/businesses';
+    } else {
+        alert('Login failed. Please check your credentials.');
+    }
+}
+</script>
+{% endblock %}
