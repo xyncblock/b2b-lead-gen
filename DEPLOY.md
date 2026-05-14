@@ -1,13 +1,17 @@
 # Deploy to Render
 
-## Manual Setup (Recommended)
+## ⚠️ Current Issue: Render Builds Failing
 
-Since automatic deploys are having issues, here's the manual approach:
+The automatic API deployment is failing. Use the **manual dashboard setup** instead.
+
+## Manual Setup (Recommended)
 
 ### Step 1: Create Services on Render Dashboard
 
 1. Go to [dashboard.render.com](https://dashboard.render.com)
-2. Click "New +" → "PostgreSQL"
+
+2. **Create PostgreSQL**
+   - New + → PostgreSQL
    - Name: `leadgen-db`
    - Plan: Free
    - Database: `leadgen`
@@ -15,13 +19,15 @@ Since automatic deploys are having issues, here's the manual approach:
    - Click "Create Database"
    - **Copy the "Internal Database URL"**
 
-3. Click "New +" → "Redis"
+3. **Create Redis**
+   - New + → Redis
    - Name: `leadgen-redis`
    - Plan: Free
    - Click "Create Redis"
    - **Copy the "Internal Redis URL"**
 
-4. Click "New +" → "Web Service"
+4. **Create Web Service**
+   - New + → Web Service
    - Connect your GitHub repo: `xyncblock/b2b-lead-gen`
    - Name: `b2b-lead-gen`
    - Region: Oregon (or closest to you)
@@ -37,8 +43,8 @@ Since automatic deploys are having issues, here's the manual approach:
 In the Web Service dashboard, go to "Environment" tab and add:
 
 ```
-DATABASE_URL=postgresql+asyncpg://... (from step 1)
-REDIS_URL=redis://... (from step 2)
+DATABASE_URL=postgresql+asyncpg://... (from step 1 - use the internal URL)
+REDIS_URL=redis://... (from step 2 - use the internal URL)
 SECRET_KEY=your-random-secret-key-here
 DEBUG=false
 APP_URL=https://b2b-lead-gen.onrender.com
@@ -63,7 +69,7 @@ Should return: `{"status":"alive","version":"1.0.0","timestamp":"..."}`
 If Render keeps failing, a VPS gives you full control:
 
 ```bash
-# 1. Create CX11 instance on Hetzner Cloud (1 vCPU, 2GB RAM, ~$4.51/mo)
+# 1. Create CX11 instance on Hetzner Cloud (~$4.51/mo)
 # 2. SSH into server
 
 # Install Docker
@@ -77,8 +83,8 @@ cd b2b-lead-gen
 
 # Create .env file
 cat > .env << 'EOF'
-DATABASE_URL=postgresql+asyncpg://leadgen:password@localhost:5432/leadgen
-REDIS_URL=redis://localhost:6379/0
+DATABASE_URL=postgresql+asyncpg://leadgen:password@db:5432/leadgen
+REDIS_URL=redis://redis:6379/0
 SECRET_KEY=your-secret-key-here
 DEBUG=false
 APP_URL=http://your-server-ip:8000
@@ -95,7 +101,7 @@ docker-compose up -d
 ## Current Status
 
 - ✅ GitHub repo: https://github.com/xyncblock/b2b-lead-gen
-- ✅ PostgreSQL DB: Created (leadgen-db)
-- ✅ Redis: Created (leadgen-redis)
-- ❌ Web Service: Build failures (Docker/Python runtime issues)
-- 🔄 Next: Try manual dashboard setup
+- ✅ PostgreSQL DB: Created on Render
+- ✅ Redis: Created on Render
+- ❌ Web Service: Build failures via API
+- 🔄 Next: Manual dashboard setup required
