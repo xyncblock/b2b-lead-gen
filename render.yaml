@@ -3,6 +3,7 @@ services:
     name: b2b-lead-gen
     runtime: docker
     plan: free
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: DATABASE_URL
         fromDatabase:
