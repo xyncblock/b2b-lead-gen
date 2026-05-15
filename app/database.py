@@ -2,13 +2,29 @@ from urllib.parse import unquote
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from app.config import get_settings
+import logging
+import traceback
+
+logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
 # Decode URL-encoded chars (e.g. %40 -> @, %24 -> $) then swap to sync driver
-sync_url = unquote(settings.DATABASE_URL).replace("postgresql+asyncpg://", "postgresql://")
+db_url = unquote(settings.DATABASE_URL).replace("postgresql+asyncpg://", "postgresql://")
 
-engine = create_engine(sync_url, echo=settings.DEBUG, future=True)
+# Add SSL mode for Supabase
+if "supabase.co" in db_url and "?" not in db_url:
+    db_url += "?sslmode=require"
+
+logger.info(f"Database URL: {db_url}")
+
+try:
+    engine = create_engine(db_url, echo=settings.DEBUG, future=True)
+    logger.info("Database engine created successfully")
+except Exception as e:
+    logger.error(f"Failed to create database engine: {e}")
+    logger.error(traceback.format_exc())
+    raise
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
