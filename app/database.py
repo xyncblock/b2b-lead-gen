@@ -3,27 +3,31 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from app.config import get_settings
 import logging
 import traceback
+import ssl
 
 logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
-# Use DATABASE_URL with pg8000 driver, strip query params
-db_url = settings.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql+pg8000://")
-db_url = db_url.replace("postgresql://", "postgresql+pg8000://")
+# Use DATABASE_URL as-is, just swap asyncpg to sync if needed
+db_url = settings.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
 
-# Strip query params (pg8000 handles SSL automatically)
+# Strip query params for connect_args handling
 from urllib.parse import urlparse, urlunparse
 parsed = urlparse(db_url)
-clean_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, '', '', ''))
+base_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, '', '', ''))
 
-logger.info(f"Database URL: {clean_url.replace('://', '://***:***@')}")
+logger.info(f"Database URL: {base_url.replace('://', '://***:***@')}")
 
 try:
     engine = create_engine(
-        clean_url,
+        base_url,
         echo=settings.DEBUG,
-        future=True
+        future=True,
+        connect_args={
+            "sslmode": "require",
+            "sslrootcert": "/etc/ssl/certs/ca-certificates.crt"
+        }
     )
     logger.info("Database engine created successfully")
 except Exception as e:
