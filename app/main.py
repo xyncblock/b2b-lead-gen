@@ -2,10 +2,12 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from contextlib import asynccontextmanager
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 from app.config import get_settings
-from app.database import engine, Base
-from app.routers import auth, businesses, health
 
 settings = get_settings()
 
@@ -13,10 +15,20 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    Base.metadata.create_all(bind=engine)
+    try:
+        from app.database import engine, Base
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables created successfully")
+    except Exception as e:
+        logger.error(f"Database error: {e}")
+        # Continue even if DB fails - let health check show the issue
     yield
     # Shutdown
-    engine.dispose()
+    try:
+        from app.database import engine
+        engine.dispose()
+    except:
+        pass
 
 
 app = FastAPI(
@@ -28,6 +40,9 @@ app = FastAPI(
 # Static files and templates
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
+
+# Import routers after app creation to avoid circular imports
+from app.routers import auth, businesses, health
 
 # API routers
 app.include_router(auth.router)
