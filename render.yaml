@@ -1,13 +1,11 @@
 services:
   - type: web
     name: b2b-lead-gen
-    runtime: python
+    env: python
     plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port 8000
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.12.3
       - key: DATABASE_URL
         sync: false
       - key: REDIS_URL
