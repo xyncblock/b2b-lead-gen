@@ -2,6 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from app.config import get_settings
 import logging
+import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ db_url = db_url.replace("postgresql+asyncpg://", "postgresql://")
 if "supabase.co" in db_url and "?" not in db_url:
     db_url += "?sslmode=require"
 
-logger.info("Connecting to database...")
+logger.info(f"Database URL: {db_url}")
 
 try:
     engine = create_engine(
@@ -28,6 +29,7 @@ try:
     logger.info("Database engine created successfully")
 except Exception as e:
     logger.error(f"Failed to create database engine: {e}")
+    logger.error(traceback.format_exc())
     # Fallback - this will fail but app will start
     engine = create_engine("postgresql://localhost:5432/dummy", echo=False, future=True)
 
