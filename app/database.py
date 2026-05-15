@@ -35,7 +35,10 @@ db_url = db_url.replace("postgresql+asyncpg://", "postgresql://")
 if "supabase.co" in db_url and "?" not in db_url:
     db_url += "?sslmode=require"
 
-logger.info(f"Database URL (masked): postgresql://*****@{db_url.split(@)[1] if @ in db_url else unknown}")
+# Mask password for logging
+if "@" in db_url:
+    masked = db_url.split("@")
+    logger.info("Database URL configured for Supabase")
 
 try:
     engine = create_engine(
