@@ -49,6 +49,23 @@ app.include_router(businesses.router)
 app.include_router(health.router)
 
 
+@app.get("/debug/error")
+async def debug_error():
+    """Get last error from memory"""
+    import traceback
+    try:
+        from app.database import get_db
+        from app.auth import get_password_hash
+        db = next(get_db())
+        from app.models import User
+        user = User(email="debug@test.com", hashed_password=get_password_hash("test"))
+        db.add(user)
+        db.commit()
+        return {"status": "ok", "user_id": user.id}
+    except Exception as e:
+        return {"status": "error", "error": str(e), "traceback": traceback.format_exc()}
+
+
 @app.get("/")
 async def index(request: Request):
     return templates.TemplateResponse(request, "index.html")
