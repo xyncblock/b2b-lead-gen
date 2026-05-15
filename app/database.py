@@ -1,20 +1,19 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from app.config import get_settings
-from urllib.parse import quote
+from urllib.parse import unquote, quote
 
 settings = get_settings()
 
-# Fix DATABASE_URL - password starts with @ which breaks URL parsing
+# Fix DATABASE_URL - handle already encoded URLs
 db_url = settings.DATABASE_URL
 
+# First unquote any existing encoding, then re-quote properly
+db_url = unquote(db_url)
+
 # Handle the case where password starts with @
-# URL format: postgresql://user:password@host:port/db
-# When password starts with @, we need to encode it
 if "postgresql://" in db_url:
-    # Remove prefix
     rest = db_url.replace("postgresql://", "")
-    # Find the LAST @ which separates credentials from host
     if "@" in rest:
         # Split from the right to handle @ in password
         user_pass, host_db = rest.rsplit("@", 1)
