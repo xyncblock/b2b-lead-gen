@@ -8,15 +8,20 @@ logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
-# Use DATABASE_URL with pg8000 driver
+# Use DATABASE_URL with pg8000 driver, strip query params
 db_url = settings.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql+pg8000://")
 db_url = db_url.replace("postgresql://", "postgresql+pg8000://")
 
-logger.info(f"Database URL: {db_url.replace('://', '://***:***@')}")
+# Strip query params (pg8000 handles SSL automatically)
+from urllib.parse import urlparse, urlunparse
+parsed = urlparse(db_url)
+clean_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, '', '', ''))
+
+logger.info(f"Database URL: {clean_url.replace('://', '://***:***@')}")
 
 try:
     engine = create_engine(
-        db_url,
+        clean_url,
         echo=settings.DEBUG,
         future=True
     )
