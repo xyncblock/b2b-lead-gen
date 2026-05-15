@@ -1,17 +1,33 @@
 services:
   - type: web
     name: b2b-lead-gen
+    runtime: docker
     plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: leadgen-db
+          property: connectionString
       - key: REDIS_URL
-        sync: false
+        fromService:
+          type: redis
+          name: leadgen-redis
+          property: connectionString
       - key: SECRET_KEY
-        sync: false
+        generateValue: true
       - key: DEBUG
         value: false
       - key: APP_URL
         value: https://b2b-lead-gen.onrender.com
+
+databases:
+  - name: leadgen-db
+    plan: free
+    databaseName: leadgen
+    user: leadgen
+
+redis:
+  - name: leadgen-redis
+    plan: free
+    ipAllowList: []
