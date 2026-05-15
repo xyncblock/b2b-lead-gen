@@ -14,14 +14,13 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
+    # Startup - try to init database but don't fail if it doesn't work
     try:
         from app.database import engine, Base
         Base.metadata.create_all(bind=engine)
         logger.info("Database tables created successfully")
     except Exception as e:
-        logger.error(f"Database error: {e}")
-        # Continue even if DB fails - let health check show the issue
+        logger.error(f"Database error (non-fatal): {e}")
     yield
     # Shutdown
     try:
@@ -41,7 +40,7 @@ app = FastAPI(
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
-# Import routers after app creation to avoid circular imports
+# Import routers after app creation
 from app.routers import auth, businesses, health
 
 # API routers
