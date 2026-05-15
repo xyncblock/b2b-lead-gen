@@ -2,6 +2,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from app.config import get_settings
 from urllib.parse import unquote, quote
+import logging
+
+logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
@@ -28,11 +31,23 @@ if "postgresql://" in db_url:
 # Also handle asyncpg prefix
 db_url = db_url.replace("postgresql+asyncpg://", "postgresql://")
 
-engine = create_engine(
-    db_url,
-    echo=settings.DEBUG,
-    future=True
-)
+# Add SSL mode for Supabase
+if "supabase.co" in db_url and "?" not in db_url:
+    db_url += "?sslmode=require"
+
+logger.info(f"Database URL (masked): postgresql://*****@{db_url.split(@)[1] if @ in db_url else unknown}")
+
+try:
+    engine = create_engine(
+        db_url,
+        echo=settings.DEBUG,
+        future=True
+    )
+    logger.info("Database engine created successfully")
+except Exception as e:
+    logger.error(f"Failed to create database engine: {e}")
+    # Create a dummy engine for startup
+    engine = create_engine("postgresql://localhost:5432/dummy", echo=False, future=True)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
