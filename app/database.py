@@ -30,8 +30,7 @@ try:
 except Exception as e:
     logger.error(f"Failed to create database engine: {e}")
     logger.error(traceback.format_exc())
-    # Fallback - this will fail but app will start
-    engine = create_engine("postgresql://localhost:5432/dummy", echo=False, future=True)
+    raise
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
