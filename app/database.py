@@ -8,8 +8,9 @@ logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
-# Use DATABASE_URL as-is, just swap asyncpg to sync if needed
-db_url = settings.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
+# Use DATABASE_URL with pg8000 driver
+db_url = settings.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql+pg8000://")
+db_url = db_url.replace("postgresql://", "postgresql+pg8000://")
 
 logger.info(f"Database URL: {db_url.replace('://', '://***:***@')}")
 
@@ -17,8 +18,7 @@ try:
     engine = create_engine(
         db_url,
         echo=settings.DEBUG,
-        future=True,
-        connect_args={"sslmode": "disable"}
+        future=True
     )
     logger.info("Database engine created successfully")
 except Exception as e:
